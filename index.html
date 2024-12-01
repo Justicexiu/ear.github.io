@@ -5,11 +5,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Ear Display</title>
   </head>
-  <body style="text-align: left; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=350 height=500 style="width: 350px; height: 500px; background: #231F20"></canvas>
-    <script src="Build/ear.loader.js"></script>
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=390px height=500px style="width: 390px; height: 500px; background: #231F20"></canvas>
+    <script src="Build/webgl.loader.js"></script>
     <script>
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var unityIns = null;
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
         var meta = document.createElement('meta');
         meta.name = 'viewport';
@@ -25,16 +27,58 @@
       }
 
       createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/ear.data.unityweb",
-        frameworkUrl: "Build/ear.framework.js.unityweb",
-        codeUrl: "Build/ear.wasm.unityweb",
+        dataUrl: "Build/webgl.data.unityweb",
+        frameworkUrl: "Build/webgl.framework.js.unityweb",
+        codeUrl: "Build/webgl.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "BZSD",
         productName: "Ear Display",
         productVersion: "0.1",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }).then((unityInstance) => {
+          unityIns = unityInstance;
       });
+
+         /**
+       * ReceiveJSMethod 函数用于接收来自网页的指令和消息，并将它们传递给 Unity 中的对象。
+       * @param {string} methodName - 要调用的 Unity 对象的方法名
+       * @param {string} message - 要传递给 Unity 对象的消息（可选）
+       */
+      // 监听来自父窗口的postMessage消息
+        window.addEventListener("message", function(event) {
+            // 获取消息对象
+            var messageObj = event.data;
+
+            // 确保消息包含methodName
+            if (messageObj && messageObj.methodName) {
+            var methodName = messageObj.methodName;
+            var message = messageObj.message;
+
+            // 在控制台输出接收到的methodName和message，用于调试
+            console.log(methodName, message);
+
+            // 如果message不为null，则进行处理
+            if (message != null) {
+                // 将文本消息转换为base64编码
+                var base64Str = btoa(
+                encodeURIComponent(message).replace(
+                    /%([0-9A-F]{2})/g,
+                    function (match, p1) {
+                    // 将百分比编码的序列转换回原始字符
+                    return String.fromCharCode("0x" + p1);
+                    }
+                )
+                );
+                // 使用Unity引擎的SendMessage方法，将methodName和base64编码的消息发送给名为"耳朵test"的Unity对象
+                unityIns.SendMessage("耳朵test", methodName, base64Str);
+            } else {
+                // 如果没有message，只发送methodName给名为"耳朵test"的Unity对象
+                unityIns.SendMessage("耳朵test", methodName);
+            }
+            }
+        });
+
     </script>
   </body>
 </html>
