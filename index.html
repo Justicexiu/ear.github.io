@@ -9,6 +9,15 @@
     <canvas id="unity-canvas" width=100% height=100% style="width: 390px; height: 500px; background: #231F20"></canvas>
     <script src="Build/webgl.loader.js"></script>
     <script>
+        function sendResponseToParent(data) {
+            parent.postMessage(data, 'https://dominiga-web.github.io/testweb.github.io/');
+        }
+
+        function receiveObjectIDFromUnity(objectID) {
+            console.log("从 Unity 传递的物体ID:", objectID);
+            sendResponseToParent(objectID);
+        }
+
         var unityIns = null;
 
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
